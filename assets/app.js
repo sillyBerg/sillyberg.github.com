@@ -34,6 +34,7 @@
   let toastTimer = 0;
   let toastCallback = null;
   let storageWarned = false;
+  let activeEdit = null;
 
   /* Date helpers ---------------------------------------------------------- */
 
@@ -445,6 +446,12 @@
   }
 
   function startEditing(id) {
+    if (activeEdit) {
+      const previous = activeEdit;
+      activeEdit = null;
+      previous.finish(true);
+    }
+
     const row = findRow(id);
     if (!row) return;
     const title = row.querySelector('.task__title');
@@ -467,9 +474,11 @@
     const finish = (commit) => {
       if (settled) return;
       settled = true;
+      if (activeEdit && activeEdit.finish === finish) activeEdit = null;
       if (commit) renameTask(id, editor.value);
       else render();
     };
+    activeEdit = { id, finish };
 
     editor.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') {
