@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>待办清单 · sillyberg</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <main class="app" aria-labelledby="app-title">
+    <header class="app__header">
+      <h1 id="app-title">待办清单</h1>
+      <p class="app__subtitle">数据保存在本机浏览器，不联网</p>
+    </header>
+
+    <form id="new-task-form" class="composer" autocomplete="off">
+      <label class="visually-hidden" for="new-task">新任务</label>
+      <input id="new-task" name="title" type="text" maxlength="200" required
+             placeholder="要做什么？按回车添加">
+      <button type="submit">添加</button>
+    </form>
+
+    <div class="filters" role="group" aria-label="筛选任务">
+      <button type="button" class="filter is-active" data-filter="all" aria-pressed="true">全部</button>
+      <button type="button" class="filter" data-filter="active" aria-pressed="false">未完成</button>
+      <button type="button" class="filter" data-filter="completed" aria-pressed="false">已完成</button>
+    </div>
+
+    <ul id="task-list" class="tasks"></ul>
+    <p id="empty-state" class="empty">还没有任务，先加一条。</p>
+
+    <footer class="app__footer">
+      <span id="remaining">剩余 0 项</span>
+      <button type="button" id="clear-completed" class="link-button" disabled>清除已完成</button>
+    </footer>
+  </main>
+
+  <script src="assets/app.js" defer></script>
+</body>
+</html>
