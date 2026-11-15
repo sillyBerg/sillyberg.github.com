@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="一个纯静态的个人任务清单：添加、排序、筛选、搜索任务，数据只保存在本机浏览器。">
+  <meta name="theme-color" content="#f3efe6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#11140f" media="(prefers-color-scheme: dark)">
+  <title>我的任务清单</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%232f6f4f'/%3E%3Cpath d='M18 34l9 9 19-21' fill='none' stroke='%23fffdf8' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('sillyberg.tasklist.theme');
+        var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      } catch (error) {
+        document.documentElement.dataset.theme = 'light';
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div class="hero__text">
+        <p class="hero__date" id="today-label"></p>
+        <h1 class="hero__title">我的任务清单</h1>
+        <p class="hero__subtitle">把要做的事写下来，一件件完成。</p>
+      </div>
+      <button class="icon-button" id="theme-toggle" type="button" aria-label="切换主题" title="切换主题">
+        <svg class="icon icon--sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <circle cx="12" cy="12" r="4.2"></circle>
+          <path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"></path>
+        </svg>
+        <svg class="icon icon--moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.4 14.6A8.6 8.6 0 0 1 9.4 3.6a8.6 8.6 0 1 0 11 11Z"></path>
+        </svg>
+      </button>
+    </header>
+
+    <noscript>
+      <p class="noscript">这个任务清单需要启用 JavaScript 才能添加和保存任务。</p>
+    </noscript>
+
+    <section class="composer-card" aria-labelledby="composer-heading">
+      <h2 class="visually-hidden" id="composer-heading">添加任务</h2>
+      <form class="composer" id="task-form" autocomplete="off">
+        <div class="composer__main">
+          <label class="visually-hidden" for="task-title">任务内容</label>
+          <input class="composer__input" id="task-title" name="title" type="text" maxlength="200" required
+                 placeholder="要做什么？按回车添加">
+          <button class="btn btn--primary composer__submit" type="submit">添加任务</button>
+        </div>
+        <div class="composer__options">
+          <label class="field" for="task-due">
+            <span class="field__label">截止日期</span>
+            <input id="task-due" name="due" type="date">
+          </label>
+          <label class="field" for="task-priority">
+            <span class="field__label">优先级</span>
+            <select id="task-priority" name="priority">
+              <option value="normal">普通</option>
+              <option value="high">重要</option>
+              <option value="low">低</option>
+            </select>
+          </label>
+          <p class="composer__hint">只保存在本机浏览器，不会上传。</p>
+        </div>
+      </form>
+    </section>
+
+    <section class="board" aria-labelledby="board-heading">
+      <h2 class="visually-hidden" id="board-heading">任务列表</h2>
+
+      <div class="toolbar">
+        <div class="filters" role="group" aria-label="筛选任务">
+          <button class="filter is-active" type="button" data-filter="all" aria-pressed="true">
+            全部<span class="filter__count" data-count="total">0</span>
+          </button>
+          <button class="filter" type="button" data-filter="active" aria-pressed="false">
+            未完成<span class="filter__count" data-count="active">0</span>
+          </button>
+          <button class="filter" type="button" data-filter="today" aria-pressed="false"
+                  title="今天到期或已经逾期">
+            今天<span class="filter__count" data-count="dueToday">0</span>
+          </button>
+          <button class="filter" type="button" data-filter="done" aria-pressed="false">
+            已完成<span class="filter__count" data-count="done">0</span>
+          </button>
+        </div>
+
+        <label class="search">
+          <span class="visually-hidden">搜索任务</span>
+          <svg class="search__icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="11" cy="11" r="6.5"></circle>
+            <path d="m16 16 4 4"></path>
+          </svg>
+          <input id="search" type="search" placeholder="搜索任务" autocomplete="off">
+        </label>
+      </div>
+
+      <div class="summary">
+        <p class="summary__text" id="summary" aria-live="polite">还没有任务</p>
+        <button class="link-button" id="clear-completed" type="button" disabled>清除已完成</button>
+      </div>
+
+      <ul class="tasks" id="task-list" aria-label="任务列表"></ul>
+
+      <div class="empty" id="empty-state">
+        <svg class="empty__icon" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 4.5h6M8 4.5H6.5A1.5 1.5 0 0 0 5 6v13.5A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H16"></path>
+          <path d="m9.2 12.4 1.9 1.9 3.8-4"></path>
+        </svg>
+        <p class="empty__text" id="empty-text">还没有任务。添加第一件要做的事吧。</p>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>纯静态页面 · 不需要登录 · 数据只保存在当前浏览器</p>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden>
+    <span class="toast__message" id="toast-message"></span>
+    <button class="toast__action" id="toast-action" type="button" hidden>撤销</button>
+  </div>
+
+  <script src="assets/app.js" defer></script>
+</body>
+</html>
